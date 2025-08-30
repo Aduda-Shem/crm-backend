@@ -59,17 +59,11 @@ class CorrespondenceGenericAPIView(generics.GenericAPIView):
         outcome = request.data.get('outcome', '')
         duration = request.data.get('duration')
 
-        # Check if contact exists and user has access
-        try:
-            contact = Contact.objects.get(pk=contact_id)
-            if hasattr(request.user, 'is_agent') and request.user.is_agent() and contact.linked_lead.owner != request.user:
-                return Response({
-                    'error': 'You can only create correspondence for your own leads'
-                }, status=status.HTTP_403_FORBIDDEN)
-        except Contact.DoesNotExist:
+        contact = Contact.objects.get(pk=contact_id)
+        if hasattr(request.user, 'is_agent') and request.user.is_agent() and contact.linked_lead.owner != request.user:
             return Response({
-                'error': 'Contact not found'
-            }, status=status.HTTP_404_NOT_FOUND)
+                'error': 'You can only create correspondence for your own leads'
+            }, status=status.HTTP_403_FORBIDDEN)
 
         # Validate duration for calls and meetings
         if duration is not None and type_q in ['call', 'meeting']:
@@ -106,11 +100,6 @@ class CorrespondenceGenericAPIView(generics.GenericAPIView):
     def put(self, request):
         correspondence_id = request.data.get('id') or request.query_params.get('id')
         correspondence = Correspondence.objects.filter(pk=correspondence_id).first()
-
-        if not correspondence:
-            return Response({
-                'error': 'Correspondence not found'
-            }, status=status.HTTP_404_NOT_FOUND)
 
         # Check permissions
         if hasattr(request.user, 'is_agent') and request.user.is_agent() and correspondence.contact.linked_lead.owner != request.user:

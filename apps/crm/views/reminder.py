@@ -64,39 +64,17 @@ class ReminderGenericAPIView(generics.GenericAPIView):
         scheduled_time_str = request.data.get('scheduled_time')
         reminder_type = request.data.get('reminder_type', 'FOLLOW_UP')
 
-        # Required fields validation
-        if not lead_id or not message or not scheduled_time_str:
-            return Response(
-                {'error': 'Lead, message, and scheduled_time are required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
 
         # Lead exists & access check
-        try:
-            lead = Lead.objects.get(pk=lead_id)
-        except Lead.DoesNotExist:
-            return Response({'error': 'Lead not found'}, status=status.HTTP_404_NOT_FOUND)
+        lead = Lead.objects.get(pk=lead_id)
 
         if getattr(request.user, 'is_agent', lambda: False)() and lead.owner != request.user:
             return Response({'error': 'You can only create reminders for your own leads'}, status=status.HTTP_403_FORBIDDEN)
 
         # Parse scheduled_time as aware datetime
-        try:
-            scheduled_time = parser.isoparse(scheduled_time_str)
-            if timezone.is_naive(scheduled_time):
-                scheduled_time = timezone.make_aware(scheduled_time, timezone.get_default_timezone())
-        except (ValueError, TypeError):
-            return Response(
-                {'error': 'Invalid scheduled_time format. Use ISO format.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # Validate scheduled_time is in the future
-        if scheduled_time <= timezone.now():
-            return Response(
-                {'error': 'Scheduled time must be in the future'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        scheduled_time = parser.isoparse(scheduled_time_str)
+        if timezone.is_naive(scheduled_time):
+            scheduled_time = timezone.make_aware(scheduled_time, timezone.get_default_timezone())
 
         # Create reminder
         reminder = Reminder(
@@ -127,11 +105,6 @@ class ReminderGenericAPIView(generics.GenericAPIView):
     def put(self, request):
         reminder_id = request.data.get('id') or request.query_params.get('id')
         reminder = Reminder.objects.filter(pk=reminder_id).first()
-
-        if not reminder:
-            return Response({
-                'error': 'Reminder not found'
-            }, status=status.HTTP_404_NOT_FOUND)
 
         # Check permissions
         if hasattr(request.user, 'is_agent') and request.user.is_agent() and reminder.lead.owner != request.user:
@@ -186,11 +159,6 @@ class ReminderGenericAPIView(generics.GenericAPIView):
     def delete(self, request):
         reminder_id = request.query_params.get('id')
         reminder = Reminder.objects.filter(pk=reminder_id).first()
-
-        if not reminder:
-            return Response({
-                'error': 'Reminder not found'
-            }, status=status.HTTP_404_NOT_FOUND)
 
         # Check permissions
         if hasattr(request.user, 'is_agent') and request.user.is_agent() and reminder.lead.owner != request.user:

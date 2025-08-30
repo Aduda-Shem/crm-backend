@@ -63,23 +63,13 @@ class ContactGenericAPIView(generics.GenericAPIView):
         company = request.data.get('company', '')
         is_primary = request.data.get('is_primary', False)
 
-        # Validate required fields
-        if not name or not email or not linked_lead_id:
-            return Response({
-                'error': 'Name, email, and linked_lead are required'
-            }, status=status.HTTP_400_BAD_REQUEST)
 
-        # Check if linked lead exists and user has access
-        try:
-            linked_lead = Lead.objects.get(pk=linked_lead_id)
-            if hasattr(request.user, 'is_agent') and request.user.is_agent() and linked_lead.owner != request.user:
-                return Response({
-                    'error': 'You can only create contacts for your own leads'
-                }, status=status.HTTP_403_FORBIDDEN)
-        except Lead.DoesNotExist:
+        linked_lead = Lead.objects.get(pk=linked_lead_id)
+        if hasattr(request.user, 'is_agent') and request.user.is_agent() and linked_lead.owner != request.user:
             return Response({
-                'error': 'Linked lead not found'
-            }, status=status.HTTP_404_NOT_FOUND)
+                'error': 'You can only create contacts for your own leads'
+            }, status=status.HTTP_403_FORBIDDEN)
+
 
         contact = Contact()
         contact.name = name
@@ -108,11 +98,6 @@ class ContactGenericAPIView(generics.GenericAPIView):
     def put(self, request):
         contact_id = request.data.get('id') or request.query_params.get('id')
         contact = Contact.objects.filter(pk=contact_id).first()
-
-        if not contact:
-            return Response({
-                'error': 'Contact not found'
-            }, status=status.HTTP_404_NOT_FOUND)
 
         # Check permissions
         if hasattr(request.user, 'is_agent') and request.user.is_agent() and contact.linked_lead.owner != request.user:
@@ -156,11 +141,6 @@ class ContactGenericAPIView(generics.GenericAPIView):
     def delete(self, request):
         contact_id = request.query_params.get('id')
         contact = Contact.objects.filter(pk=contact_id).first()
-
-        if not contact:
-            return Response({
-                'error': 'Contact not found'
-            }, status=status.HTTP_404_NOT_FOUND)
 
         # Check permissions
         if hasattr(request.user, 'is_agent') and request.user.is_agent():

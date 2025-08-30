@@ -57,12 +57,6 @@ class NoteGenericAPIView(generics.GenericAPIView):
         lead_id = request.data.get('lead')
         note_type = request.data.get('note_type', 'GENERAL')
 
-        # Validate required fields
-        if not content or not lead_id:
-            return Response({
-                'error': 'Content and lead are required'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
         # Check if lead exists and user has access
         lead = Lead.objects.get(pk=lead_id)
         if hasattr(request.user, 'is_agent') and request.user.is_agent() and lead.owner != request.user:
@@ -94,11 +88,6 @@ class NoteGenericAPIView(generics.GenericAPIView):
     def put(self, request):
         note_id = request.data.get('id') or request.query_params.get('id')
         note = Note.objects.filter(pk=note_id).first()
-
-        if not note:
-            return Response({
-                'error': 'Note not found'
-            }, status=status.HTTP_404_NOT_FOUND)
 
         # Check permissions
         if hasattr(request.user, 'is_agent') and request.user.is_agent() and note.lead.owner != request.user:
@@ -134,11 +123,6 @@ class NoteGenericAPIView(generics.GenericAPIView):
     def delete(self, request):
         note_id = request.query_params.get('id')
         note = Note.objects.filter(pk=note_id).first()
-
-        if not note:
-            return Response({
-                'error': 'Note not found'
-            }, status=status.HTTP_404_NOT_FOUND)
 
         # Check permissions
         if hasattr(request.user, 'is_agent') and request.user.is_agent() and note.lead.owner != request.user:

@@ -4,8 +4,9 @@ from .timestamp import TimestampedModel
 
 
 class AuditTrail(TimestampedModel):
-    """Comprehensive audit trail for CRUD actions on key models."""
-
+    """
+        audit trail for CRUD actions on key models.
+    """
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name='audit_actions')
     action = models.CharField(max_length=50)
     model = models.CharField(max_length=100)
