@@ -85,6 +85,9 @@ class LeadSerializer(serializers.ModelSerializer):
     notes_count = serializers.SerializerMethodField()
     reminders_count = serializers.SerializerMethodField()
     
+    # Convert Decimal to float for JSON serialization
+    value = serializers.SerializerMethodField()
+
     class Meta:
         model = Lead
         fields = [
@@ -106,11 +109,14 @@ class LeadSerializer(serializers.ModelSerializer):
     def get_reminders_count(self, obj):
         return obj.reminders.count()
     
+    @extend_schema_field(serializers.FloatField)
+    def get_value(self, obj):
+        return float(obj.value) if obj.value is not None else None
+    
     def validate_value(self, value):
         if value is not None and value <= 0:
             raise serializers.ValidationError("Lead value must be positive.")
         return value
-
 
 class LeadSummarySerializer(serializers.Serializer):
     """
