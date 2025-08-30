@@ -199,6 +199,7 @@ CORS_ALLOW_CREDENTIALS = True
 
 # AI Configuration
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
+GEMINI_API_URL = os.getenv("GEMINI_API_URL")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
