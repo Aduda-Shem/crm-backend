@@ -32,3 +32,7 @@ docker-compose.override.yml
 
 # macOS
 .DS_Store
+
+# Django migrations
+**/migrations/*.py
+!**/migrations/__init__.py
