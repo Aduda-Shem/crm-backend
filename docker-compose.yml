@@ -6,7 +6,6 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: django-backend
-    command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - ./:/app
     ports:
@@ -15,14 +14,15 @@ services:
       - .env
     depends_on:
       - db
+    command: python manage.py runserver 0.0.0.0:8000
 
   db:
     image: postgres:15
     container_name: postgres-db
     environment:
-      POSTGRES_DB: mydb
-      POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: leads
+      POSTGRES_USER: leads
+      POSTGRES_PASSWORD: leads
     ports:
       - "5432:5432"
     volumes:
